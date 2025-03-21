@@ -1,7 +1,12 @@
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { deserialize, serialize, WagmiProvider } from "wagmi";
 
 import type { Route } from "./+types/root";
-import "./app.css";
+
+import "~/app.css";
+import { queryClient, wagmiConfig } from "~/wagmi-config";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -17,6 +22,12 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const persister = createSyncStoragePersister({
+    serialize,
+    storage: window.localStorage,
+    deserialize,
+  });
+
   return (
     <html lang="en">
       <head>
@@ -26,7 +37,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <WagmiProvider config={wagmiConfig}>
+          <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, buster: "v1" }}>
+            {children}
+          </PersistQueryClientProvider>
+        </WagmiProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
