@@ -368,10 +368,12 @@ export default function useContractEvents<
 
       // Combine `finalized` and `tentative` ranges
       const all = [...finalized];
-      const last = all.at(-1);
-      if (all.length > 0 && tentative.length > 0 && last!.toBlock + 1n === tentative.at(0)!.fromBlock) {
-        last!.logs = last!.logs.concat(tentative.at(0)!.logs);
-        last!.toBlock = tentative.at(0)!.toBlock;
+      if (all.length > 0 && tentative.length > 0 && all.at(-1)!.toBlock + 1n === tentative.at(0)!.fromBlock) {
+        all[all.length - 1] = {
+          ...all[all.length - 1],
+          logs: all[all.length - 1].logs.concat(tentative.at(0)!.logs),
+          toBlock: tentative.at(0)!.toBlock,
+        };
         all.push(...tentative.slice(1));
       } else {
         all.push(...tentative);
